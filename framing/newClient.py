@@ -1,14 +1,14 @@
 #! /usr/bin/env python3
 
 # Echo client program
+import socket, sys, re
+import time
 from archiver import Archiver
-import socket, sys, re, time
 sys.path.append("../lib")       # for params
 import params
 
 switchesVarDefaults = (
     (('-s', '--server'), 'server', "127.0.0.1:50001"),
-    (('-d', '--delay'), 'delay', "0"),
     (('-?', '--usage'), "usage", False), # boolean (set if present)
     )
 
@@ -52,27 +52,26 @@ if s is None:
     print('could not open socket')
     sys.exit(1)
 
-delay = float(paramMap['delay']) # delay before reading (default = 0s)
-if delay != 0:
-    print(f"sleeping for {delay}s")
-    time.sleep(int(delay))
-    print("done sleeping")
+# newArchiver = Archiver(['test.txt', 'test.java'], 'files/')
+# newArchiver = Archiver(['test.txt'], 'files/')
+newArchiver = Archiver(['img.png', 'test.java', 'test.txt'], 'files/')
+# newArchiver = Archiver(['img.png','test.txt'], 'files/')
+# newArchiver = Archiver(['img.png'], 'files/')
 
+newArchiver.archive()
+byteArray = newArchiver.readByteArray()
+time.sleep(5)
+s.send(f"{len(byteArray):64d}".encode())
+for file in byteArray:
+    byteString = "".encode()
+    lengthOfName = file[0]
+    s.send(f"{lengthOfName:64d}".encode())
+    fileName = file[1]
+    s.send(fileName)
+    lengthOfContent = file[2]
+    s.send(f"{lengthOfContent:64d}".encode())
+    content = file[3]
+    s.send(content)
 
-unarchiver = Archiver([], '')
+# s.shutdown(socket.SHUT_WR)      # no more output
 
-numberOfFiles = int(s.recv(64).decode())
-for i in range(numberOfFiles):
-    lengthOfName = int(s.recv(64).decode())
-    fileName = s.recv(lengthOfName)
-    while lengthOfName < len(fileName):
-        fileName += s.recv(lengthOfName)
-
-    lengthOfContent = int(s.recv(64).decode())
-    content = s.recv(lengthOfContent)
-    while lengthOfContent > len(content):
-        content += s.recv(lengthOfContent - len(content))
-    
-    unarchiver.unarchive(fileName, content)
-print("Zero length read.  Closing")
-s.close()

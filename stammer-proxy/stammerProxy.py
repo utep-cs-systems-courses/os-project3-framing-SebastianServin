@@ -173,8 +173,9 @@ while 1:
     rmap,wmap,xmap = {},{},{}   # socket:object mappings for select
     xmap[l.checkErr()] = l
     rmap[l.checkRead()] = l
+    # print("RMAP: ", list(rmap.keys()))
     now = time.time()
-    nextDelayUntil = now + 10   # default 10s poll
+    nextDelayUntil = now + 5  # default 10s poll
     for conn in connections:
         for sock in conn.csock, conn.ssock:
             xmap[sock] = conn
@@ -187,8 +188,12 @@ while 1:
                 if (delayUntil < nextDelayUntil and delayUntil > now): # minimum active delay
                     nextDelayUntil = delayUntil
     maxSleep = nextDelayUntil - now
+
     if debug: print("select max sleep=%fs" % maxSleep)
     rset, wset, xset = select(list(rmap.keys()), list(wmap.keys()), list(xmap.keys()), maxSleep)
+    # print("RSET ", rset)
+    # print("WSET ", wset)
+    # print("XSET ", xset)
     if debug: print([ repr([ sockNames[s] for s in sset]) for sset in [rset,wset,xset] ])
     for sock in rset:
         rmap[sock].doRecv()
