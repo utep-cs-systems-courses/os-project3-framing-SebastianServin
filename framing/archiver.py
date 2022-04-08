@@ -4,9 +4,10 @@ import os
 
 
 class Archiver:
-    def __init__(self, files, folder):
+    def __init__(self, files, folder, localPort):
         self.files = files
         self.folder = folder
+        self.localPort = localPort
 
     def writeByteArray(self, file, byteArray):
         singleFileInfo = {}
@@ -28,7 +29,8 @@ class Archiver:
 
 
     def readByteArray(self):
-        archFile = open("arch.arch", 'rb')
+        archFileName = str(self.localPort) + ".arch"
+        archFile = open(archFileName, 'rb')
         byteArray = []
         with archFile as f:
             archFileContents = f.read()
@@ -51,7 +53,8 @@ class Archiver:
         return byteArray
 
     def archive(self):
-        archFile = open("arch.arch", "wb")
+        archFileName = str(self.localPort) + ".arch"
+        archFile = open(archFileName, "wb")
         byteArray = []
         for file in self.files:
             file = self.folder + file
@@ -62,7 +65,7 @@ class Archiver:
             fileName = file["name"]
             contentListLength = file["contentLength"]
             contentList = file["content"]
-            archFile = open("arch.arch", "ab")
+            archFile = open(archFileName, "ab")
             archFile.write(fileNameLength)
             archFile.write(fileName)
             archFile.write(contentListLength)
@@ -70,8 +73,8 @@ class Archiver:
                 archFile.write(content)
             archFile.close()
 
-    def unarchive(self, name, contents):
-        name = name.decode().split('/')
+    def unarchive(self, nameArg, contents, unarchivedFiles):
+        name = nameArg.decode().split('/')
         name = name[1]
         try:
             os.remove("newFiles/" + name)
@@ -80,3 +83,4 @@ class Archiver:
         newFile = open("newFiles/" + name, 'wb')
         newFile.write(contents)
         newFile.close()
+        unarchivedFiles.remove(nameArg.decode())

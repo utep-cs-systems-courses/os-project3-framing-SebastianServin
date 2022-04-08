@@ -7,19 +7,19 @@ from archiver import Archiver
 sys.path.append("../lib")       # for params
 import params
 
-switchesVarDefaults = (
-    (('-s', '--server'), 'server', "127.0.0.1:50001"),
-    (('-?', '--usage'), "usage", False), # boolean (set if present)
-    )
+# switchesVarDefaults = (
+#     (('-s', '--server'), 'server', "127.0.0.1:50001"),
+#     (('-?', '--usage'), "usage", False), # boolean (set if present)
+#     )
 
 
-progname = "framedClient"
-paramMap = params.parseParams(switchesVarDefaults)
+# progname = "framedClient"
+# paramMap = params.parseParams(switchesVarDefaults)
 
-server, usage  = paramMap["server"], paramMap["usage"]
-
-if usage:
-    params.usage()
+# server, usage  = paramMap["server"], paramMap["usage"]
+# if usage:
+#     params.usage()
+server = "127.0.0.1:50001"
 
 try:
     serverHost, serverPort = re.split(":", server)
@@ -47,20 +47,21 @@ for res in socket.getaddrinfo(serverHost, serverPort, socket.AF_UNSPEC, socket.S
         s = None
         continue
     break
-
 if s is None:
     print('could not open socket')
     sys.exit(1)
 
-# newArchiver = Archiver(['test.txt', 'test.java'], 'files/')
-# newArchiver = Archiver(['test.txt'], 'files/')
-newArchiver = Archiver(['img.png', 'test.java', 'test.txt'], 'files/')
-# newArchiver = Archiver(['img.png','test.txt'], 'files/')
-# newArchiver = Archiver(['img.png'], 'files/')
+fileNames = []
+
+for arg in sys.argv:
+    fileNames.append(arg)
+
+print(s.getsockname()[1])
+newArchiver = Archiver(fileNames, 'files/', s.getsockname()[1])
 
 newArchiver.archive()
 byteArray = newArchiver.readByteArray()
-time.sleep(5)
+time.sleep(3)
 s.send(f"{len(byteArray):64d}".encode())
 for file in byteArray:
     byteString = "".encode()
